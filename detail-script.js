@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
     // ==========================================
-    // FUNGSI UTAMA AGC (WALLPAPER OPTIMIZED)
+    // FUNGSI UTAMA AGC (FIXED IMAGE URL)
     // ==========================================
     function runAGC(keyword) {
         const detailTitle = document.getElementById('detail-title');
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         function generateSeoTitle(baseKeyword) { 
             const hookWords = ['Aesthetic', 'Beautiful', 'Cool', 'HD 4K', 'Best', 'Stunning', 'Cute']; 
-            const suffixWords = ['iPhone Wallpaper', 'Lockscreen Background', 'Wallpaper Ideas', 'Phone Background'];
+            const suffixWords = ['iPhone Wallpaper', 'Lockscreen Background', 'Wallpaper Ideas'];
             const randomHook = hookWords[Math.floor(Math.random() * hookWords.length)]; 
             const randomSuffix = suffixWords[Math.floor(Math.random() * suffixWords.length)];
             return `${randomHook} ${capitalizeEachWord(baseKeyword)} ${randomSuffix}`; 
@@ -57,10 +57,9 @@ document.addEventListener('DOMContentLoaded', function() {
             return text;
         }
 
-        // Teks Deskripsi Otomatis Khusus Wallpaper
         function setWallpaperDescription(term) {
-            const spintaxArticleTemplate = `{Discover|Explore|Download} the best <strong>${capitalizeEachWord(term)}</strong> {iPhone wallpaper|HD lockscreen background|aesthetic wallpaper} to {instantly upgrade|beautifully customize|elevate} your {phone|mobile device|home screen}. {Scroll down to|Check below to} find high-quality {9:16|4K resolution} images perfect for your screen.`;
-            if(detailBody) detailBody.innerHTML = `<p style="text-align:center; font-size: 0.95rem;">${processSpintax(spintaxArticleTemplate)}</p>`;
+            const spintaxArticleTemplate = `Discover the best <strong>${capitalizeEachWord(term)}</strong> iPhone wallpaper HD lockscreen background to beautifully customize your mobile device. Scroll down to find high-quality 9:16 resolution images perfect for your screen.`;
+            if(detailBody) detailBody.innerHTML = `<p style="text-align:center; font-size: 0.95rem; color:#555;">${processSpintax(spintaxArticleTemplate)}</p>`;
         }
 
         if (!keyword) { 
@@ -69,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return; 
         }
 
-        // --- FUNGSI RENDER GAMBAR KE GRID ---
+        // --- RENDER GAMBAR KE GRID ---
         function renderWallpapers(keywords, containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -77,8 +76,8 @@ document.addEventListener('DOMContentLoaded', function() {
             let htmlContent = '';
             keywords.forEach(kw => {
                 const queryImage = kw + " iphone wallpaper";
-                // API Resolusi Besar agar tidak pecah (w=1080 & h=1920)
-                const imgUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(queryImage)}&w=1080&h=1920&c=7&rs=1&p=0&dpr=2&pid=1.7`;
+                // Menggunakan parameter w=500&h=888&c=7 agar aman, berasio pas 9:16, dan muncul tajam tanpa broken link
+                const imgUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(queryImage)}&w=500&h=888&c=7&rs=1&p=0`;
                 const keywordForUrl = kw.replace(/\s+/g, '-').toLowerCase();
                 const linkUrl = `detail.html?q=${encodeURIComponent(keywordForUrl)}`;
                 const altText = `${capitalizeEachWord(kw)} iPhone Wallpaper`;
@@ -123,10 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function processAndRenderRelated(relatedArray) {
-            // Hilangkan duplikat
             let uniqueRelated = [...new Set(relatedArray)];
-            
-            // Jika kurang dari 10, tambahkan padding (kata tambahan)
             const paddingWords = ['aesthetic', 'hd', '4k', 'dark', 'cute', 'vintage', 'minimalist', 'art', 'background', 'cool'];
             let padIndex = 0;
             
@@ -135,7 +131,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 padIndex++;
             }
             
-            // Pastikan tepat 10
             renderWallpapers(uniqueRelated.slice(0, 10), 'related-wallpapers-container');
         }
 
@@ -144,17 +139,13 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch('keyword.txt')
                 .then(response => response.text())
                 .then(data => {
-                    // Bersihkan tag seperti jika ada
                     let keywords = data.split('\n')
                         .map(k => k.replace(/\/gi, '').trim())
                         .filter(k => k.length > 0 && k.toLowerCase() !== keyword.toLowerCase());
                     
-                    // Acak array
                     keywords.sort(() => Math.random() - 0.5);
-                    
                     let randomKeywords = keywords.slice(0, 10);
                     
-                    // Jika file txt isinya kurang dari 10, tambah backup string
                     let padIndex = 1;
                     while (randomKeywords.length < 10) {
                         randomKeywords.push(`cool background ${padIndex}`);
@@ -170,9 +161,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         }
 
-        // --- Eksekusi Utama ---
         const newTitle = generateSeoTitle(keyword);
-        document.title = `${newTitle} | DecorHouz Wallpapers`;
+        document.title = `${newTitle} | DecorHouz`;
         if(detailTitle) detailTitle.textContent = newTitle;
         
         setWallpaperDescription(keyword);
