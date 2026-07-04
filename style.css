@@ -1,0 +1,162 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 15px; /* Sedikit dikecilkan agar UI lebih padat */
+    line-height: 1.5;
+    background-color: #f4f6f5; 
+    color: #333;
+}
+
+.container { max-width: 1200px; margin: 0 auto; padding: 0 10px; }
+
+/* HEADER - Dibuat sangat rapat */
+header {
+    background-color: #fff;
+    border-bottom: 1px solid #e6e6e6;
+    padding: 8px 0; 
+}
+header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.logo-link { text-decoration: none; }
+.logo {
+    font-size: 1.4rem; 
+    font-weight: 700;
+    color: #333;
+    letter-spacing: -0.5px;
+}
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 1rem; 
+}
+nav a {
+    text-decoration: none;
+    color: #555;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* WIDGET IKLAN */
+.ad-wrapper { margin: 8px 0; }
+.ad-wrapper-mid { margin: 20px 0; } /* Jarak spesifik untuk AD3 di tengah */
+
+/* ARTIKEL UTAMA */
+.main-article {
+    background: #fff;
+    padding: 15px; /* Dirapatkan */
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin: 10px 0;
+}
+.article-content {
+    color: #444;
+    margin-bottom: 15px;
+}
+.main-article h1#detail-title {
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 8px;
+    line-height: 1.2;
+}
+
+/* ================================================= */
+/* WALLPAPER GRID SYSTEM (Rasio 9:16 & Button)       */
+/* ================================================= */
+.wallpaper-grid {
+    display: grid;
+    /* Desktop: 5 Kolom agar pas memuat 10 gambar per seksi */
+    grid-template-columns: repeat(5, 1fr); 
+    gap: 10px; /* Jarak dibuat rapat antar gambar */
+}
+
+.wallpaper-card {
+    background-color: #fff;
+    border-radius: 6px; 
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease;
+}
+.wallpaper-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.wallpaper-card .img-link {
+    display: block;
+    width: 100%;
+    flex-grow: 1;
+}
+
+.wallpaper-card img {
+    width: 100%;
+    aspect-ratio: 9/16; /* Memaksa gambar selalu rasio HP 9:16 */
+    object-fit: cover;
+    display: block;
+}
+
+/* Tombol Download */
+.download-btn {
+    display: block;
+    width: 100%;
+    background-color: #2b2b2b;
+    color: #fff;
+    text-align: center;
+    padding: 8px 5px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+.download-btn:hover {
+    background-color: #4a8a4f;
+}
+
+/* FOOTER */
+footer {
+    background-color: #222;
+    color: #fff;
+    text-align: center;
+    padding: 12px 0;
+    font-size: 0.85rem;
+}
+
+/* ================================================= */
+/* RESPONSIVE DESIGN (HP & TABLET)                   */
+/* ================================================= */
+@media screen and (max-width: 768px) {
+    header .container {
+        flex-direction: column;
+        gap: 6px;
+    }
+    nav ul {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+    .main-article {
+        padding: 10px; 
+        margin: 8px 0;
+    }
+    .main-article h1#detail-title {
+        font-size: 1.3rem;
+    }
+    
+    /* Seluler: Mutlak 2 Kolom (karena ada 10 gambar per grid = 5 baris tiap grid, total 10 baris) */
+    .wallpaper-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px; /* Jarak sangat rapat di HP untuk memaksimalkan layar */
+    }
+    
+    .download-btn {
+        padding: 7px 2px;
+        font-size: 0.8rem;
+    }
+}

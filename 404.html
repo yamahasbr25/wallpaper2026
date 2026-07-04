@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading Recipe...</title>
+    <script>
+        // Skrip untuk menangkap URL Not Found dan melemparnya ke sistem AGC (detail.html)
+        (function() {
+            // 1. Ambil path dari URL yang error 
+            // (Contoh: /recipes/cucumber-recipes-683)
+            var currentPath = window.location.pathname;
+            
+            // 2. Pecah URL dan ambil bagian paling belakang sebagai keyword
+            var pathSegments = currentPath.split('/').filter(Boolean);
+            var keyword = pathSegments.pop(); // Hasil: "cucumber-recipes-683"
+            
+            if (keyword) {
+                // Hapus ekstensi .html jika tidak sengaja terbawa
+                keyword = keyword.replace(/\.html$/, '');
+                
+                // 3. Ambil query parameter asal (seperti ?utm_source=Pinterest)
+                var queryParams = window.location.search;
+                
+                // 4. Susun ulang folder base path (Hasil: "/recipes")
+                var basePath = '/' + pathSegments.join('/');
+                if (basePath === '/') basePath = ''; 
+                
+                // 5. Rakit URL baru menuju detail.html AGC
+                // Hasil: /recipes/detail.html?q=cucumber-recipes-683
+                var redirectUrl = basePath + '/detail.html?q=' + encodeURIComponent(keyword);
+                
+                // Gabungkan query parameter utm_source jika ada
+                if (queryParams) {
+                    redirectUrl += '&' + queryParams.substring(1);
+                }
+                
+                // 6. Lakukan Redirect (Pengalihan otomatis)
+                // Menggunakan replace agar halaman 404 tidak tersimpan di riwayat tombol 'Back' browser
+                window.location.replace(redirectUrl);
+            } else {
+                // Jika path tidak valid, arahkan ke halaman utama
+                window.location.replace('/index.html');
+            }
+        })();
+    </script>
+</head>
+<body style="background-color: #f3f7f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Open Sans', sans-serif; color: #333;">
+    <div style="text-align: center;">
+        <h2 style="color: #d35400;">Preparing your recipe...</h2>
+        <p style="color: #666;">Please wait a moment while we load the ingredients.</p>
+    </div>
+</body>
+</html>
