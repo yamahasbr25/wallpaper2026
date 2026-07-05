@@ -54,7 +54,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const html = dataArray.map(data => {
                 const linkUrl = `detail.html?q=${encodeURIComponent(data.kw.replace(/\s+/g, '-').toLowerCase())}`;
-                // Mengarahkan tombol ke halaman download khusus
                 const downloadPageUrl = `download.html?img=${encodeURIComponent(data.hd)}`;
                 
                 return `
@@ -104,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // ==========================================
-        // ALGORITMA MASTER FILTER ANTI-KEMBAR
+        // ALGORITMA MASTER (3 RELATED + 17 RANDOM)
         // ==========================================
         async function buildContent() {
             const [relatedApi, randomTxt] = await Promise.all([fetchRelated(), fetchRandom()]);
@@ -113,6 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
             randomPool.sort(() => Math.random() - 0.5); // Acak cadangan
             
             const usedImageUrls = new Set();
+            const finalList = []; // Penampung ke-20 gambar unik
             
             // Core verifikasi unik link sumber
             function getUniqueData(kwString) {
@@ -130,50 +130,41 @@ document.addEventListener('DOMContentLoaded', function() {
                 return null;
             }
 
-            // 1. Eksekusi 10 Related
-            let finalRelated = [];
+            // 1. Eksekusi Related (Maksimal 3 Gambar Saja)
             let r1 = relatedApi.map(k => k.replace(/wallpaper/gi, '').trim()).filter(k => k);
+            let relatedCount = 0;
             
             for (let k of r1) {
-                if (finalRelated.length >= 10) break;
+                if (relatedCount >= 3) break; // Berhenti di 3
                 let data = getUniqueData(k);
                 if (data) {
-                    finalRelated.push(data);
-                } else {
-                    // JIKA KEMBAR -> Lompati dan ambil dari keyword.txt
-                    while(randomPool.length > 0) {
-                        let backupKw = randomPool.pop();
-                        let backupData = getUniqueData(backupKw);
-                        if (backupData) {
-                            finalRelated.push(backupData);
-                            break;
-                        }
-                    }
+                    finalList.push(data);
+                    relatedCount++;
+                }
+            }
+
+            // 2. Sisa kuota (hingga genap 20) dipenuhi dari keyword.txt
+            while (finalList.length < 20 && randomPool.length > 0) {
+                let rk = randomPool.pop();
+                let data = getUniqueData(rk);
+                if (data) {
+                    finalList.push(data);
                 }
             }
             
-            // Tambal darurat
-            let i = 1;
-            while (finalRelated.length < 10) { 
-                let data = getUniqueData(`${keyword} aesthetic ${i++}`);
-                if (data) finalRelated.push(data);
+            // 3. Tambal Darurat jika file txt isinya kurang
+            let padIndex = 1;
+            while (finalList.length < 20) { 
+                let data = getUniqueData(`cool aesthetic background ${padIndex++}`);
+                if (data) finalList.push(data);
             }
-            renderGrid(finalRelated, 'related-wallpapers-container');
 
-            // 2. Eksekusi 10 Random
-            let finalRandom = [];
-            while (finalRandom.length < 10 && randomPool.length > 0) {
-                let rk = randomPool.pop();
-                let data = getUniqueData(rk);
-                if (data) finalRandom.push(data);
-            }
-            
-            let j = 1;
-            while (finalRandom.length < 10) { 
-                let data = getUniqueData(`cool background ${j++}`);
-                if (data) finalRandom.push(data);
-            }
-            renderGrid(finalRandom, 'random-wallpapers-container');
+            // 4. Bagi menjadi 10 atas dan 10 bawah (Agar ad3 pas di tengah)
+            const top10 = finalList.slice(0, 10);
+            const bottom10 = finalList.slice(10, 20);
+
+            renderGrid(top10, 'related-wallpapers-container');
+            renderGrid(bottom10, 'random-wallpapers-container');
         }
 
         buildContent();
