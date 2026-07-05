@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.text();
         })
         .then(htmlData => {
-            // Mencegah Soft 404 menimpa halaman menjadi putih/blank
             if (htmlData.toLowerCase().includes('<html') && !htmlData.toLowerCase().includes('preparing your recipe') && !htmlData.toLowerCase().includes('page not found')) {
                 document.open();
                 document.write(htmlData);
@@ -72,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
             container.innerHTML = html;
         }
 
-        // Ambil Google Suggest secara Paksa (Anti-Crash)
+        // Ambil Google Suggest 
         function fetchRelated() {
             return new Promise(resolve => {
                 const script = document.createElement('script');
@@ -91,12 +90,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 script.onerror = () => resolve([]);
                 document.head.appendChild(script);
                 
-                // Batas waktu 3 detik agar halaman tidak macet
                 setTimeout(() => resolve([]), 3000); 
             });
         }
 
-        // Ambil random keyword.txt secara Paksa (Anti-Crash)
+        // Ambil random keyword.txt
         function fetchRandom() {
             return fetch('keyword.txt')
                 .then(res => res.ok ? res.text() : '')
@@ -111,20 +109,63 @@ document.addEventListener('DOMContentLoaded', function() {
         async function buildContent() {
             const [related, random] = await Promise.all([fetchRelated(), fetchRandom()]);
             
-            // 1. Eksekusi Related (Pembersihan dan pastikan genap 10)
+            // ==========================================
+            // FILTER ANTI-DOBEL (MENYARING GAMBAR KEMBAR)
+            // ==========================================
+            const usedKeywords = new Set();
+            
+            // 1. Eksekusi Related (10 Gambar)
             let r1 = related.map(k => k.replace(/wallpaper/gi, '').trim()).filter(k => k);
-            r1 = [...new Set(r1)];
+            let finalRelated = [];
+            
+            for (let k of r1) {
+                let keyLower = k.toLowerCase();
+                // Jika keyword belum pernah digunakan, masukkan ke daftar
+                if (!usedKeywords.has(keyLower)) {
+                    usedKeywords.add(keyLower);
+                    finalRelated.push(k);
+                }
+                if (finalRelated.length >= 10) break;
+            }
+            
+            // Tambal jika kurang dari 10
             let i = 1;
-            while (r1.length < 10) { r1.push(`${keyword} aesthetic ${i++}`); }
-            renderGrid(r1.slice(0, 10), 'related-wallpapers-container');
+            while (finalRelated.length < 10) { 
+                let fallback = `${keyword} aesthetic ${i++}`;
+                let keyLower = fallback.toLowerCase();
+                if (!usedKeywords.has(keyLower)) {
+                    usedKeywords.add(keyLower);
+                    finalRelated.push(fallback);
+                }
+            }
+            renderGrid(finalRelated, 'related-wallpapers-container');
 
-            // 2. Eksekusi Random (Pengacakan dan pastikan genap 10)
+            // 2. Eksekusi Random (10 Gambar)
             let r2 = random.filter(k => k.toLowerCase() !== keyword.toLowerCase());
             r2.sort(() => Math.random() - 0.5);
-            r2 = [...new Set(r2)];
+            
+            let finalRandom = [];
+            for (let k of r2) {
+                let keyLower = k.toLowerCase();
+                // Filter ketat: Menolak gambar jika sudah muncul di bagian Related
+                if (!usedKeywords.has(keyLower)) {
+                    usedKeywords.add(keyLower);
+                    finalRandom.push(k);
+                }
+                if (finalRandom.length >= 10) break;
+            }
+            
+            // Tambal jika kurang dari 10
             let j = 1;
-            while (r2.length < 10) { r2.push(`cool background ${j++}`); }
-            renderGrid(r2.slice(0, 10), 'random-wallpapers-container');
+            while (finalRandom.length < 10) { 
+                let fallback = `cool background ${j++}`;
+                let keyLower = fallback.toLowerCase();
+                if (!usedKeywords.has(keyLower)) {
+                    usedKeywords.add(keyLower);
+                    finalRandom.push(fallback);
+                }
+            }
+            renderGrid(finalRandom, 'random-wallpapers-container');
         }
 
         buildContent();
