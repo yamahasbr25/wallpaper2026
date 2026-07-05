@@ -12,216 +12,121 @@ document.addEventListener('DOMContentLoaded', function() {
 
     fetch(targetHtml)
         .then(response => {
-            if (response.ok) return response.text();
-            throw new Error('File not found');
+            if (!response.ok) throw new Error('Not found');
+            return response.text();
         })
         .then(htmlData => {
-            // Mencegah server yang merespons 200 OK pada halaman 404
-            if (htmlData.toLowerCase().includes('<title>404') || htmlData.toLowerCase().includes('page not found')) {
-                throw new Error('Soft 404 detected');
+            // Mencegah Soft 404 menimpa halaman menjadi putih/blank
+            if (htmlData.toLowerCase().includes('<html') && !htmlData.toLowerCase().includes('preparing your recipe') && !htmlData.toLowerCase().includes('page not found')) {
+                document.open();
+                document.write(htmlData);
+                document.close();
+            } else {
+                throw new Error('Soft 404');
             }
-            document.open();
-            document.write(htmlData);
-            document.close();
         })
         .catch(() => {
             const keyword = cleanQuery.replace(/-/g, ' ').trim();
             runAGC(keyword);
         });
 
-    // ==========================================
-    // FUNGSI UTAMA AGC (BULLETPROOF VERSION)
-    // ==========================================
     function runAGC(keyword) {
         const detailTitle = document.getElementById('detail-title');
         const detailBody = document.getElementById('detail-body');
         
-        function capitalizeEachWord(str) { 
-            if (!str) return ''; 
-            return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '); 
+        if (!keyword) {
+            if(detailTitle) detailTitle.textContent = 'Wallpaper Not Found';
+            return;
+        }
+
+        function capitalize(str) { 
+            return str.replace(/\b\w/g, l => l.toUpperCase()); 
         }
         
-        function generateSeoTitle(baseKeyword) { 
-            const hookWords = ['Aesthetic', 'Beautiful', 'Cool', 'HD 4K', 'Best', 'Stunning', 'Cute']; 
-            const suffixWords = ['iPhone Wallpaper', 'Lockscreen Background', 'Wallpaper Ideas'];
-            const randomHook = hookWords[Math.floor(Math.random() * hookWords.length)]; 
-            const randomSuffix = suffixWords[Math.floor(Math.random() * suffixWords.length)];
-            return `${randomHook} ${capitalizeEachWord(baseKeyword)} ${randomSuffix}`; 
-        }
+        const seoTitle = `Aesthetic ${capitalize(keyword)} iPhone Wallpaper 4K`;
+        document.title = seoTitle + ' | DecorHouz';
+        if(detailTitle) detailTitle.textContent = seoTitle;
+        if(detailBody) detailBody.innerHTML = `<p style="text-align:center;">Download the best high-quality <strong>${capitalize(keyword)}</strong> wallpapers for your phone. Explore our collection of perfect 9:16 lockscreen backgrounds below.</p>`;
 
-        function processSpintax(text) {
-            const spintaxPattern = /{([^{}]+)}/g;
-            while (spintaxPattern.test(text)) {
-                text = text.replace(spintaxPattern, (match, choices) => {
-                    const options = choices.split('|');
-                    return options[Math.floor(Math.random() * options.length)];
-                });
-            }
-            return text;
-        }
-
-        // 1. FUNGSI AMBIL DESKRIPSI (Dilindungi dari error 404 HTML)
-        function fetchDescriptionTemplate(term) {
-            fetch('deskripsi.txt')
-                .then(response => {
-                    if (!response.ok) throw new Error('Deskripsi Not Found');
-                    return response.text();
-                })
-                .then(data => {
-                    // Cek jika yang ter-fetch adalah tag HTML (404 page)
-                    if(data.trim().toLowerCase().startsWith('<!doctype') || data.trim().toLowerCase().startsWith('<html')) {
-                        throw new Error('HTML Detected');
-                    }
-                    const templates = data.split('---').map(t => t.trim()).filter(t => t.length > 0);
-                    if(templates.length > 0) {
-                        const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
-                        let parsedText = processSpintax(randomTemplate);
-                        parsedText = parsedText.replace(/%keyword%/gi, `<strong>${capitalizeEachWord(term)}</strong>`);
-                        
-                        const htmlContent = parsedText.split('\n').map(line => `<p style="text-align:center; font-size: 0.95rem; color:#555; margin-bottom:8px;">${line}</p>`).join('');
-                        if(detailBody) detailBody.innerHTML = htmlContent;
-                    } else {
-                        fallbackDescription(term);
-                    }
-                })
-                .catch(() => fallbackDescription(term));
-        }
-
-        function fallbackDescription(term) {
-            const spintaxArticleTemplate = `{Discover|Explore} the best <strong>${capitalizeEachWord(term)}</strong> iPhone wallpaper HD lockscreen background to beautifully customize your mobile device. Scroll down to find high-quality 9:16 resolution images perfect for your screen.`;
-            if(detailBody) detailBody.innerHTML = `<p style="text-align:center; font-size: 0.95rem; color:#555;">${processSpintax(spintaxArticleTemplate)}</p>`;
-        }
-
-        if (!keyword) { 
-            if(detailTitle) detailTitle.textContent = 'Wallpaper Not Found'; 
-            if(detailBody) detailBody.innerHTML = '<p>Please return to the <a href="index.html">homepage</a>.</p>'; 
-            return; 
-        }
-
-        // --- RENDER GAMBAR KE GRID ---
-        function renderWallpapers(keywords, containerId) {
+        // Fungsi Render Grid Gambar
+        function renderGrid(keywords, containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
             
-            let htmlContent = '';
-            keywords.forEach(kw => {
+            const html = keywords.map(kw => {
                 const queryImage = kw + " iphone wallpaper";
-                const imgUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(queryImage)}&w=500&h=888&c=7&rs=1&p=0`;
-                const keywordForUrl = kw.replace(/\s+/g, '-').toLowerCase();
-                const linkUrl = `detail.html?q=${encodeURIComponent(keywordForUrl)}`;
-                const altText = `${capitalizeEachWord(kw)} iPhone Wallpaper`;
-
-                htmlContent += `
+                const imageUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(queryImage)}&w=720&h=1280&c=7&rs=1&p=0`;
+                const hdUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(queryImage)}&w=1080&h=1920&c=7&rs=1&p=0`;
+                const linkUrl = `detail.html?q=${encodeURIComponent(kw.replace(/\s+/g, '-').toLowerCase())}`;
+                
+                return `
                 <div class="wallpaper-card">
-                    <a href="${linkUrl}" class="img-link" title="${altText}">
-                        <img src="${imgUrl}" alt="${altText}" loading="lazy">
+                    <a href="${linkUrl}" class="img-link">
+                        <img src="${imageUrl}" alt="${capitalize(kw)} Wallpaper" loading="lazy">
                     </a>
-                    <a href="${imgUrl}" target="_blank" download class="download-btn">📥 Download</a>
+                    <a href="${hdUrl}" target="_blank" download class="download-btn">📥 Download HD</a>
                 </div>
                 `;
-            });
-            container.innerHTML = htmlContent;
-        }
-
-        let isRelatedRendered = false;
-
-        // --- 2. AMBIL 10 RELATED KEYWORD (Dengan Timeout Bypass) ---
-        function fetchRelatedWallpapers(term) {
-            const script = document.createElement('script');
-            const callbackName = 'handleRelatedSuggest_' + Math.round(Math.random() * 10000);
-            script.src = `https://suggestqueries.google.com/complete/search?client=youtube&jsonp=${callbackName}&hl=en&q=${encodeURIComponent(term + " wallpaper")}`;
-            document.head.appendChild(script);
-
-            // Timeout 3 detik. Jika API Google mati/diblokir, paksa pakai fallback
-            const timeoutId = setTimeout(() => {
-                if (!isRelatedRendered) {
-                    isRelatedRendered = true;
-                    handleRelatedFallback(term);
-                }
-            }, 3000);
-
-            window[callbackName] = function(data) {
-                clearTimeout(timeoutId);
-                if (isRelatedRendered) return;
-                isRelatedRendered = true;
-                
-                const suggestions = data[1];
-                let relatedKeywords = [];
-                
-                if (suggestions && suggestions.length > 0) {
-                    suggestions.forEach(item => {
-                        let relatedTerm = typeof item === 'string' ? item : item[0];
-                        let cleanTerm = relatedTerm.replace(/wallpaper/gi, '').trim();
-                        if (cleanTerm) relatedKeywords.push(cleanTerm);
-                    });
-                }
-                processAndRenderRelated(relatedKeywords, term);
-            };
-
-            script.onerror = () => {
-                clearTimeout(timeoutId);
-                if (!isRelatedRendered) {
-                    isRelatedRendered = true;
-                    handleRelatedFallback(term);
-                }
-            };
-        }
-
-        function handleRelatedFallback(term) {
-            processAndRenderRelated([term], term);
-        }
-
-        function processAndRenderRelated(relatedArray, originalTerm) {
-            let uniqueRelated = [...new Set(relatedArray)];
-            const paddingWords = ['aesthetic', 'hd', '4k', 'dark', 'cute', 'vintage', 'minimalist', 'art', 'background', 'cool'];
-            let padIndex = 0;
+            }).join('');
             
-            while (uniqueRelated.length < 10 && padIndex < paddingWords.length) {
-                uniqueRelated.push(`${originalTerm} ${paddingWords[padIndex]}`);
-                padIndex++;
-            }
-            renderWallpapers(uniqueRelated.slice(0, 10), 'related-wallpapers-container');
+            container.innerHTML = html;
         }
 
-        // --- 3. AMBIL 10 RANDOM KEYWORD (Dilindungi dari error 404 HTML) ---
-        function fetchRandomWallpapers(term) {
-            fetch('keyword.txt')
-                .then(response => {
-                    if (!response.ok) throw new Error('Keyword txt not found');
-                    return response.text();
-                })
-                .then(data => {
-                    if(data.trim().toLowerCase().startsWith('<!doctype') || data.trim().toLowerCase().startsWith('<html')) {
-                        throw new Error('HTML Detected');
+        // Ambil Google Suggest secara Paksa (Anti-Crash)
+        function fetchRelated() {
+            return new Promise(resolve => {
+                const script = document.createElement('script');
+                const cb = 'jsonp_' + Date.now() + Math.round(Math.random()*1000);
+                
+                window[cb] = function(data) {
+                    delete window[cb];
+                    script.remove();
+                    if(data && data[1]) {
+                        resolve(data[1].map(i => typeof i === 'string' ? i : i[0]));
+                    } else {
+                        resolve([]);
                     }
-                    let keywords = data.split('\n')
-                        .map(k => k.replace(/\/gi, '').trim())
-                        .filter(k => k.length > 0 && k.toLowerCase() !== term.toLowerCase());
-                    
-                    keywords.sort(() => Math.random() - 0.5);
-                    let randomKeywords = keywords.slice(0, 10);
-                    
-                    let padIndex = 1;
-                    while (randomKeywords.length < 10) {
-                        randomKeywords.push(`cool background ${padIndex}`);
-                        padIndex++;
-                    }
-                    renderWallpapers(randomKeywords.slice(0, 10), 'random-wallpapers-container');
-                })
-                .catch(() => {
-                    let fallbackRandom = [];
-                    for(let i=1; i<=10; i++) fallbackRandom.push(`aesthetic hd wallpaper ${i}`);
-                    renderWallpapers(fallbackRandom, 'random-wallpapers-container');
-                });
+                };
+                script.src = `https://suggestqueries.google.com/complete/search?client=youtube&jsonp=${cb}&hl=en&q=${encodeURIComponent(keyword + " wallpaper")}`;
+                script.onerror = () => resolve([]);
+                document.head.appendChild(script);
+                
+                // Batas waktu 3 detik agar halaman tidak macet
+                setTimeout(() => resolve([]), 3000); 
+            });
         }
 
-        // Eksekusi semua fungsi
-        const newTitle = generateSeoTitle(keyword);
-        document.title = `${newTitle} | DecorHouz`;
-        if(detailTitle) detailTitle.textContent = newTitle;
-        
-        fetchDescriptionTemplate(keyword);
-        fetchRelatedWallpapers(keyword);
-        fetchRandomWallpapers(keyword);
+        // Ambil random keyword.txt secara Paksa (Anti-Crash)
+        function fetchRandom() {
+            return fetch('keyword.txt')
+                .then(res => res.ok ? res.text() : '')
+                .then(txt => {
+                    if (txt.includes('<html')) return [];
+                    return txt.split('\n').map(l => l.trim()).filter(l => l);
+                })
+                .catch(() => []);
+        }
+
+        // Master Fungsi Asynchronous
+        async function buildContent() {
+            const [related, random] = await Promise.all([fetchRelated(), fetchRandom()]);
+            
+            // 1. Eksekusi Related (Pembersihan dan pastikan genap 10)
+            let r1 = related.map(k => k.replace(/wallpaper/gi, '').trim()).filter(k => k);
+            r1 = [...new Set(r1)];
+            let i = 1;
+            while (r1.length < 10) { r1.push(`${keyword} aesthetic ${i++}`); }
+            renderGrid(r1.slice(0, 10), 'related-wallpapers-container');
+
+            // 2. Eksekusi Random (Pengacakan dan pastikan genap 10)
+            let r2 = random.filter(k => k.toLowerCase() !== keyword.toLowerCase());
+            r2.sort(() => Math.random() - 0.5);
+            r2 = [...new Set(r2)];
+            let j = 1;
+            while (r2.length < 10) { r2.push(`cool background ${j++}`); }
+            renderGrid(r2.slice(0, 10), 'random-wallpapers-container');
+        }
+
+        buildContent();
     }
 });
