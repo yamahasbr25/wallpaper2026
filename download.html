@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Wallpaper | DecorHouz</title>
+    <meta name="robots" content="noindex, nofollow">
+    <style>
+        /* Desain bersih tanpa margin/padding mengambang */
+        body, html {
+            margin: 0; padding: 0;
+            background-color: #f4f6f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        /* Kontainer Utama Pengunci Lebar Mutlak 300px */
+        .download-wrapper {
+            width: 300px; /* Samakan dengan lebar Banner Ads Google 300x250 */
+            max-width: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Kontainer Iklan: Membunuh semua jarak */
+        .ad-container {
+            width: 300px;
+            text-align: center;
+            line-height: 0;
+            font-size: 0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: block;
+        }
+
+        /* Menghilangkan sisa margin pada iframe/script js yang disisipkan ad network */
+        .ad-container iframe, .ad-container script, .ad-container ins {
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+        }
+
+        /* Tombol Download Mutlak 300px */
+        .dl-btn {
+            display: block;
+            width: 300px;
+            background-color: #222;
+            color: #fff;
+            text-align: center;
+            padding: 16px 0;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-sizing: border-box;
+            margin: 0;
+        }
+
+        .dl-btn:hover { background-color: #4a8a4f; }
+    </style>
+</head>
+<body>
+
+    <div class="download-wrapper">
+        
+        <div class="ad-container">
+            <script type="text/javascript" src='https://seribudollarperhari.github.io/banner/ad1.js'></script>
+        </div>
+        
+        <a href="#" id="dl-link" class="dl-btn" download>📥 DOWNLOAD HD IMAGE</a>
+        
+        <div class="ad-container">
+            <script type="text/javascript" src='https://seribudollarperhari.github.io/banner/ad2.js'></script>
+        </div>
+        
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            const imgUrl = params.get('img');
+            const dlLink = document.getElementById('dl-link');
+            
+            if (imgUrl) {
+                // Beri href ke link HD resolusi besar dari bing
+                dlLink.href = imgUrl;
+            } else {
+                dlLink.textContent = "INVALID LINK - GO BACK";
+                dlLink.href = "index.html";
+                dlLink.removeAttribute('download');
+            }
+        });
+    </script>
+</body>
+</html>
