@@ -19,7 +19,6 @@ nav a { text-decoration: none; color: #555; font-weight: 600; font-size: 0.9rem;
 .main-article { background: #fff; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 h1#detail-title { text-align: center; font-size: 1.4rem; margin-bottom: 10px; color: #111; }
 .article-content p { font-size: 0.95rem; color: #555; margin-bottom: 15px; }
-.section-title { font-size: 1.1rem; text-align: center; margin: 20px 0 12px; color: #222; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #f0f0f0; padding-bottom: 6px; }
 
 /* Wallpaper Grid - Desktop (5 columns) */
 .wallpaper-grid {
@@ -28,7 +27,7 @@ h1#detail-title { text-align: center; font-size: 1.4rem; margin-bottom: 10px; co
     gap: 12px;
 }
 
-/* Image Cards (Rasio 9:16 dipaksa oleh CSS) */
+/* Image Cards */
 .wallpaper-card {
     background: #fff; border-radius: 6px; overflow: hidden;
     display: flex; flex-direction: column;
@@ -54,18 +53,19 @@ h1#detail-title { text-align: center; font-size: 1.4rem; margin-bottom: 10px; co
 footer { background: #222; color: #fff; text-align: center; padding: 15px 0; font-size: 0.85rem; margin-top: 15px; }
 
 /* ======================================================= */
-/* MOBILE DEVICE - WAJIB 2 KOLOM 10 BARIS & SANGAT RAPAT   */
+/* MOBILE DEVICE SETTINGS                                  */
 /* ======================================================= */
 @media (max-width: 768px) {
-    header .container { flex-direction: column; gap: 8px; }
+    /* Sembunyikan Menu Home, About, Contact di HP */
+    #top-nav { display: none; }
+    
+    header .container { flex-direction: column; gap: 8px; justify-content: center; }
     .main-article { padding: 10px; margin: 5px 0; }
     h1#detail-title { font-size: 1.25rem; line-height: 1.3; }
-    .section-title { font-size: 1rem; margin: 15px 0 10px; }
     
     .wallpaper-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 8px; /* Dibuat rapat untuk memaksimalkan space ponsel */
+        gap: 8px;
     }
-    
     .download-btn { font-size: 0.8rem; padding: 7px 0; }
 }
