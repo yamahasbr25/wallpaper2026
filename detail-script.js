@@ -47,23 +47,22 @@ document.addEventListener('DOMContentLoaded', function() {
         if(detailTitle) detailTitle.textContent = seoTitle;
         if(detailBody) detailBody.innerHTML = `<p style="text-align:center;">Download the best high-quality <strong>${capitalize(keyword)}</strong> wallpapers for your phone. Explore our collection of perfect 9:16 lockscreen backgrounds below.</p>`;
 
-        // Fungsi Render Grid Gambar
-        function renderGrid(keywords, containerId) {
+        // Fungsi Render Grid
+        function renderGrid(dataArray, containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
             
-            const html = keywords.map(kw => {
-                const queryImage = kw + " iphone wallpaper";
-                const imageUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(queryImage)}&w=720&h=1280&c=7&rs=1&p=0`;
-                const hdUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(queryImage)}&w=1080&h=1920&c=7&rs=1&p=0`;
-                const linkUrl = `detail.html?q=${encodeURIComponent(kw.replace(/\s+/g, '-').toLowerCase())}`;
+            const html = dataArray.map(data => {
+                const linkUrl = `detail.html?q=${encodeURIComponent(data.kw.replace(/\s+/g, '-').toLowerCase())}`;
+                // Mengarahkan tombol ke halaman download khusus
+                const downloadPageUrl = `download.html?img=${encodeURIComponent(data.hd)}`;
                 
                 return `
                 <div class="wallpaper-card">
-                    <a href="${linkUrl}" class="img-link">
-                        <img src="${imageUrl}" alt="${capitalize(kw)} Wallpaper" loading="lazy">
+                    <a href="${linkUrl}" class="img-link" title="${capitalize(data.kw)} Wallpaper">
+                        <img src="${data.img}" alt="${capitalize(data.kw)}" loading="lazy">
                     </a>
-                    <a href="${hdUrl}" target="_blank" download class="download-btn">📥 Download HD</a>
+                    <a href="${downloadPageUrl}" target="_blank" class="download-btn">📥 Download</a>
                 </div>
                 `;
             }).join('');
@@ -71,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
             container.innerHTML = html;
         }
 
-        // Ambil Google Suggest 
+        // Ambil API Google
         function fetchRelated() {
             return new Promise(resolve => {
                 const script = document.createElement('script');
@@ -89,12 +88,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 script.src = `https://suggestqueries.google.com/complete/search?client=youtube&jsonp=${cb}&hl=en&q=${encodeURIComponent(keyword + " wallpaper")}`;
                 script.onerror = () => resolve([]);
                 document.head.appendChild(script);
-                
                 setTimeout(() => resolve([]), 3000); 
             });
         }
 
-        // Ambil random keyword.txt
+        // Ambil File TXT
         function fetchRandom() {
             return fetch('keyword.txt')
                 .then(res => res.ok ? res.text() : '')
@@ -105,65 +103,75 @@ document.addEventListener('DOMContentLoaded', function() {
                 .catch(() => []);
         }
 
-        // Master Fungsi Asynchronous
+        // ==========================================
+        // ALGORITMA MASTER FILTER ANTI-KEMBAR
+        // ==========================================
         async function buildContent() {
-            const [related, random] = await Promise.all([fetchRelated(), fetchRandom()]);
+            const [relatedApi, randomTxt] = await Promise.all([fetchRelated(), fetchRandom()]);
             
-            // ==========================================
-            // FILTER ANTI-DOBEL (MENYARING GAMBAR KEMBAR)
-            // ==========================================
-            const usedKeywords = new Set();
+            let randomPool = randomTxt.filter(k => k.toLowerCase() !== keyword.toLowerCase());
+            randomPool.sort(() => Math.random() - 0.5); // Acak cadangan
             
-            // 1. Eksekusi Related (10 Gambar)
-            let r1 = related.map(k => k.replace(/wallpaper/gi, '').trim()).filter(k => k);
+            const usedImageUrls = new Set();
+            
+            // Core verifikasi unik link sumber
+            function getUniqueData(kwString) {
+                let cleanKw = kwString.replace(/wallpaper/gi, '').trim();
+                if(!cleanKw) cleanKw = kwString;
+                
+                let queryImage = cleanKw + " iphone wallpaper";
+                let imageUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(queryImage)}&w=720&h=1280&c=7&rs=1&p=0`;
+                let hdUrl = `https://tse1.mm.bing.net/th?q=${encodeURIComponent(queryImage)}&w=1080&h=1920&c=7&rs=1&p=0`;
+                
+                if (!usedImageUrls.has(imageUrl)) {
+                    usedImageUrls.add(imageUrl);
+                    return { kw: cleanKw, img: imageUrl, hd: hdUrl };
+                }
+                return null;
+            }
+
+            // 1. Eksekusi 10 Related
             let finalRelated = [];
+            let r1 = relatedApi.map(k => k.replace(/wallpaper/gi, '').trim()).filter(k => k);
             
             for (let k of r1) {
-                let keyLower = k.toLowerCase();
-                // Jika keyword belum pernah digunakan, masukkan ke daftar
-                if (!usedKeywords.has(keyLower)) {
-                    usedKeywords.add(keyLower);
-                    finalRelated.push(k);
-                }
                 if (finalRelated.length >= 10) break;
+                let data = getUniqueData(k);
+                if (data) {
+                    finalRelated.push(data);
+                } else {
+                    // JIKA KEMBAR -> Lompati dan ambil dari keyword.txt
+                    while(randomPool.length > 0) {
+                        let backupKw = randomPool.pop();
+                        let backupData = getUniqueData(backupKw);
+                        if (backupData) {
+                            finalRelated.push(backupData);
+                            break;
+                        }
+                    }
+                }
             }
             
-            // Tambal jika kurang dari 10
+            // Tambal darurat
             let i = 1;
             while (finalRelated.length < 10) { 
-                let fallback = `${keyword} aesthetic ${i++}`;
-                let keyLower = fallback.toLowerCase();
-                if (!usedKeywords.has(keyLower)) {
-                    usedKeywords.add(keyLower);
-                    finalRelated.push(fallback);
-                }
+                let data = getUniqueData(`${keyword} aesthetic ${i++}`);
+                if (data) finalRelated.push(data);
             }
             renderGrid(finalRelated, 'related-wallpapers-container');
 
-            // 2. Eksekusi Random (10 Gambar)
-            let r2 = random.filter(k => k.toLowerCase() !== keyword.toLowerCase());
-            r2.sort(() => Math.random() - 0.5);
-            
+            // 2. Eksekusi 10 Random
             let finalRandom = [];
-            for (let k of r2) {
-                let keyLower = k.toLowerCase();
-                // Filter ketat: Menolak gambar jika sudah muncul di bagian Related
-                if (!usedKeywords.has(keyLower)) {
-                    usedKeywords.add(keyLower);
-                    finalRandom.push(k);
-                }
-                if (finalRandom.length >= 10) break;
+            while (finalRandom.length < 10 && randomPool.length > 0) {
+                let rk = randomPool.pop();
+                let data = getUniqueData(rk);
+                if (data) finalRandom.push(data);
             }
             
-            // Tambal jika kurang dari 10
             let j = 1;
             while (finalRandom.length < 10) { 
-                let fallback = `cool background ${j++}`;
-                let keyLower = fallback.toLowerCase();
-                if (!usedKeywords.has(keyLower)) {
-                    usedKeywords.add(keyLower);
-                    finalRandom.push(fallback);
-                }
+                let data = getUniqueData(`cool background ${j++}`);
+                if (data) finalRandom.push(data);
             }
             renderGrid(finalRandom, 'random-wallpapers-container');
         }
